@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- The Dropit Mac serves plain HTTP on the local network by design, so cleartext is
-     allowed. Scoped to private address ranges and localhost only. -->
-<network-security-config>
-    <base-config cleartextTrafficPermitted="true" />
-</network-security-config>

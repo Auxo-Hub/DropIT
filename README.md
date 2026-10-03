@@ -15,7 +15,6 @@ A native macOS application that lets you seamlessly share files with any device 
   - **Devices → Mac**: Select multiple files simultaneously on mobile devices and track live upload progress.
 - 🔁 **Resumable Transfers**: Interrupted downloads and uploads continue where they stopped instead of starting over. Downloads use HTTP range requests (`206 Partial Content`), and uploads are chunked with the partial file kept on both sides.
 - 🗂 **Browse Mac Folders**: Devices get a file browser for the folders you share. They can navigate folders, read files, create folders, rename, delete, and pull files onto themselves. Path traversal outside the shared folders is rejected.
-- 📱 **Browse Phone Folders (Android)**: With the companion app, the Mac can browse the phone's storage instead — read, write, create, rename, delete, and copy files in both directions.
 - 🔐 **Pairing Codes You Can Revoke**: Every QR code carries a one-time session token. Hit **"Refresh Code"** to issue a new token — old codes stop admitting new devices while devices already connected keep working.
 - 🔒 **Optional HTTPS**: Dropit generates its own self-signed CA certificate (RSA 2048, with the Mac's LAN addresses in the certificate) and can serve the whole session over TLS. Plain HTTP remains the default.
 - ⚡ **Live Synchronization**: Real-time sync ensures that when the Mac user adds or removes files, the receiver's screen updates automatically without reloading.
@@ -112,50 +111,6 @@ open Dropit.app
 
 ---
 
-## Android app (Dropit Phone)
-
-`DropitPhone.apk` in this folder is a companion app that lets the **Mac browse the phone's
-storage**. The web dashboard can only ever read the Mac, so this direction needs a real app.
-
-```bash
-./build_apk.sh              # debug APK -> DropitPhone.apk
-./build_apk.sh --release    # release APK (reuses the debug keystore)
-```
-
-Building needs a JDK 17 and the Android SDK. The script picks these up from
-`~/Library/Android/jdk17` and `~/Library/Android/sdk` if present, otherwise from
-`JAVA_HOME` / `ANDROID_HOME`.
-
-### How it works
-
-1. Start a session on the Mac.
-2. Open **Dropit Phone** and tap **Share a folder...** to pick the folders to expose.
-3. The phone finds the Mac by itself — it sends a UDP broadcast probe and the Mac replies
-   with its port and session token. No typing, no QR scanning.
-4. The phone registers and receives a **random per-device secret**. Every later request
-   carries that secret, so another machine on the same Wi-Fi cannot browse the phone even
-   though it can reach the phone's port.
-5. On the Mac, open **Devices** and press **Storage** on the phone to browse it.
-
-Providers that stop checking in for 90 seconds are dropped automatically.
-
-### Storage access on Android
-
-Two models, both supported:
-
-- **Folder access (default).** Uses the system folder picker, so the app needs no broad
-  storage permission. Works on every supported Android version. The Mac can only see the
-  folders you chose.
-- **All files access (opt-in).** Toggle it in the app and grant the permission in Settings
-  to let the Mac reach the rest of internal storage, not just the folders you picked.
-  Android 11+ only. Apps using this are restricted on the Play Store, which does not affect
-  a sideloaded APK.
-
-The phone serves its own small HTTP server on an OS-assigned port; the Mac talks to it
-directly and never proxies arbitrary third parties.
-
----
-
 By default devices can browse your home folder. Sensitive locations are never exposed, even
 inside it: `.ssh`, `.gnupg`, `.aws`, `.azure`, `.kube`, `.docker`, `.config`,
 `.password-store`, `Library/Keychains`, and `Library/Application Support`.
@@ -202,15 +157,7 @@ file transfer/
 │   └── Info.plist                    # App bundle property list
 ├── Tests/
 │   └── test_transfer.swift           # Automated end-to-end multi-file and upload tests
-├── android/                          # Dropit Phone (Android companion app)
-│   └── app/src/main/java/com/dropit/phone/
-│       ├── MainActivity.kt           # Folder sharing + all-files access toggle
-│       ├── StorageBridge.kt          # SAF + all-files access, opaque path handling
-│       ├── StorageHttpServer.kt      # Built-in HTTP server exposing /fs
-│       └── MacLink.kt                # UDP discovery, registration, secret storage
-├── DropitPhone.apk                   # Prebuilt debug APK
 ├── build.sh                          # Build script producing Dropit.app
-├── build_apk.sh                      # Build script producing the Android APK
 ├── run.sh                            # Launch helper
 └── README.md
 ```
