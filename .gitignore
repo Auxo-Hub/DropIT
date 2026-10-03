@@ -1,0 +1,24 @@
+.DS_Store
+
+.build/
+.swiftpm/
+DerivedData/
+
+# Build outputs
+Dropit.app/
+Dropit.zip
+DropitPhone.apk
+NetworkHelper
+/Icon*
+
+# Android
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+
+# macOS
+*.dmg
